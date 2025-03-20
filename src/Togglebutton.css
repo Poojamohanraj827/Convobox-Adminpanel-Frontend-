@@ -1,8 +1,9 @@
 .toggle-button {
     width: 39px; /* Reduced width */
     height: 16px; /* Reduced height */
-    background-color: rgb(181, 153, 226) ;/*Change toggle button bg color*/
-    border-radius: 10px; /* Adjusted to half the height */
+    /*Change toggle button bg color*/
+    border-radius: 120px; /* Adjusted to half the height */
+    color:rgb(171, 69, 230);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -11,15 +12,14 @@
     transition: background-color 0.3s ease;
     margin-left: 25px;
   }
+
   
-  .toggle-button.active {
-    background-color: rgb(181, 153, 226);
-  }
+
   
   .toggle-circle {
     width: 21px; /* Reduced width */
     height: 20px; /* Reduced height */
-    background-color: rgb(123, 52, 237);
+    background-color: rgb(233, 226, 243);
     border-radius: 50%;
     transition: transform 0.6s ease;
   }

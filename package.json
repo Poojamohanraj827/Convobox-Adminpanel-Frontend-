@@ -14,7 +14,9 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.8.3",
     "class-variance-authority": "^0.7.1",
+    "dayjs": "^1.11.13",
     "lucide-react": "^0.477.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -28,8 +30,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-},
-  
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

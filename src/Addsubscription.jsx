@@ -1,98 +1,229 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-    Typography,
-    TextField,
-    Button,
-    Grid,
-    Modal,
-    Box,
-} from '@mui/material';
+  Typography,
+  TextField,
+  Button,
+  Modal,
+  Box,
+  IconButton,
+  CircularProgress,
+  Grid,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import axios from "axios";
+import dayjs from "dayjs";
 
-const AddSubscription = () => {
-    const [open, setOpen] = useState(false);
+const AddSubscription = ({ open, handleClose, userId, wabaId }) => {
+  const [plan, setPlan] = useState("");
+  const [subscriptionType, setSubscriptionType] = useState("");
+  const [startDate, setStartDate] = useState(dayjs().format("YYYY-MM-DD")); // Default to today
+  const [endDate, setEndDate] = useState(""); // State for calculated end date
+  const [plans, setPlans] = useState([]); // Store plans from backend
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    const handleClickOpen = () => {
-        setOpen(true);
+  // Fetch subscription plans from backend
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await axios.post("http://localhost:5000/api/subPlans/getAllPlanNames");
+        setPlans(response.data);
+      } catch (err) {
+        setError("Failed to load plans.");
+      }
     };
 
-    const handleClose = () => {
-        setOpen(false);
+    fetchPlans();
+  }, []);
+
+  // Calculate end date whenever subscriptionType or startDate changes
+  useEffect(() => {
+    if (subscriptionType && startDate) {
+      const start = dayjs(startDate);
+      let end;
+
+      switch (subscriptionType) {
+        case "MONTH":
+          end = start.add(1, "month");
+          break;
+        case "QUARTERLY":
+          end = start.add(3, "months");
+          break;
+        case "YEARLY":
+          end = start.add(1, "year");
+          break;
+        default:
+          end = start;
+      }
+
+      // Format end date as "day-month-year"
+      setEndDate(end.format("DD-MM-YYYY"));
+    } else {
+      setEndDate("");
+    }
+  }, [subscriptionType, startDate]);
+
+  // Handle subscription activation
+  const handleUpdate = async () => {
+    if (!plan || !subscriptionType || !startDate) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const requestData = {
+      userId,
+      wabaId,
+      planName: plan,
+      expValue: subscriptionType,
+      startDate,
+      planStatus: true,
     };
 
-    const style = {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
-    };
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/planuser/createplanuser",
+        requestData
+      );
+      console.log("Subscription Activated:", response.data);
+      handleClose(); // Close modal after success
+    } catch (err) {
+      setError(err.response?.data?.error || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div>
-            <Button variant="contained" onClick={handleClickOpen} sx={{ bgcolor: 'rgb(106, 39, 214)', mb: 2 }}>
-                Add Subscription
-            </Button>
-            <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="modal-title"
-                aria-describedby="modal-description"
+  return (
+    <Modal open={open} onClose={handleClose}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 500, // Fixed width for the modal
+          bgcolor: "background.paper",
+          p: 4,
+          borderRadius: 2,
+        }}
+      >
+        <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{ position: "absolute", right: 8, top: 8 }}
+        >
+          <CloseIcon />
+        </IconButton>
+
+        <Typography variant="h6" gutterBottom>
+          Activate Subscription
+        </Typography>
+
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
+
+        <Grid container spacing={2}>
+          {/* Plan Selection (Fetched from API) */}
+          <Grid item xs={12}>
+            <TextField
+              label="Subscription Plan"
+              variant="outlined"
+              select
+              SelectProps={{ native: true }}
+              fullWidth
+              value={plan}
+              onChange={(e) => setPlan(e.target.value)}
+              sx={{ mb: 2 }}
+              InputLabelProps={{
+                shrink: true, // Ensure the label is always displayed above the select field
+              }}
             >
-                <Box sx={style}>
-                    <Typography id="modal-title" variant="h6" component="h2">
-                        Activate Subscription
-                    </Typography>
-                    <form>
-                        <label htmlFor="">Plan</label>
-                        <TextField
-                            fullWidth
-                            label="Plan"
-                            select
-                            SelectProps={{
-                                native: true,
-                            }}
-                            sx={{ mb: 2 }} // Use sx for consistent styling
-                        >
-                            <option value="">Select the Plan</option>
-                            {/* Add more options here */}
-                        </TextField>
+              <option value="">Select a Subscription Plan</option>
+              {plans.map((p) => (
+                <option key={p.PlanId} value={p.Name}>
+                  {p.Name}
+                </option>
+              ))}
+            </TextField>
+          </Grid>
 
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Start Date"
-                                    variant="outlined"
-                                    helperText="12/5/2025"
-                                />
-                            </Grid>
+          {/* Subscription Type Selection */}
+          <Grid item xs={12}>
+            <TextField
+              label="Subscription Duration"
+              variant="outlined"
+              select
+              SelectProps={{ native: true }}
+              fullWidth
+              value={subscriptionType}
+              onChange={(e) => setSubscriptionType(e.target.value)}
+              sx={{ mb: 2 }}
+              InputLabelProps={{
+                shrink: true, // Ensure the label is always displayed above the select field
+              }}
+            >
+              <option value="">Select Duration</option>
+              <option value="MONTH">Month</option>
+              <option value="QUARTERLY">Quarterly</option>
+              <option value="YEARLY">Yearly</option>
+            </TextField>
+          </Grid>
 
-                            <Grid item xs={6}>
-                                <TextField
-                                    fullWidth
-                                    label="End Date"
-                                    variant="outlined"
-                                    helperText="12/6/2025"
-                                />
-                            </Grid>
-                        </Grid>
-                    </form>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                        <Button onClick={handleClose} color="inherit" sx={{ mr: 1 }}>
-                            Cancel
-                        </Button>
-                        <Button variant="contained" sx={{ bgcolor: '#6c63ff' }}>
-                            Reset
-                        </Button>
-                    </Box>
-                </Box>
-            </Modal>
-        </div>
-    );
+          {/* Start Date Input */}
+          <Grid item xs={12}>
+            <TextField
+              label="Start Date"
+              type="date"
+              variant="outlined"
+              fullWidth
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              sx={{ mb: 2 }}
+              InputLabelProps={{
+                shrink: true, // Ensure the label is always displayed above the input field
+              }}
+            />
+          </Grid>
+
+          {/* End Date Display (Read-only) */}
+          <Grid item xs={12}>
+            <TextField
+              label="End Date"
+              variant="outlined"
+              fullWidth
+              value={endDate}
+              sx={{ mb: 2 }}
+              InputProps={{
+                readOnly: true,
+              }}
+              InputLabelProps={{
+                shrink: true, // Ensure the label is always displayed above the input field
+              }}
+            />
+          </Grid>
+
+          {/* Activate Button */}
+          <Grid item xs={12}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleUpdate}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : "Activate"}
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+    </Modal>
+  );
 };
 
 export default AddSubscription;

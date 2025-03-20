@@ -1,92 +1,94 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Font.css";
 import { TextField, Button, Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Modal } from "@mui/material";
+import axios from "axios";
 
-const Subscription = ({ open, handleClose }) => {
-  const [prices, setPrices] = useState({
-    Starter: { Monthly: "2499", Yearly: "2199" },
-    Growth: { Monthly: "2499", Yearly: "2199" },
-    Premium: { Monthly: "2499", Yearly: "2199" },
-  });
+const Subscription = ({ open, handleClose, userId, wabaId }) => {
+  const [planData, setPlanData] = useState(null);
+  const [price, setPrice] = useState("");
 
-  const handleChange = (plan, type, value) => {
-    setPrices((prev) => ({
-      ...prev,
-      [plan]: { ...prev[plan], [type]: value },
-    }));
+  useEffect(() => {
+    if (open) {
+      fetchPlanDetails();
+    }
+  }, [open]);
+
+  const fetchPlanDetails = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/api/planuser/getplanuser", { UserId: userId, WabaId: wabaId });
+      setPlanData(response.data);
+      setPrice(response.data.price); // Ensure lowercase if the API returns it this way
+    } catch (error) {
+      console.error("Error fetching plan details:", error);
+    }
   };
 
-  const handleReset = () => {
-    setPrices({
-      Starter: { Monthly: "2499", Yearly: "2199" },
-      Growth: { Monthly: "2499", Yearly: "2199" },
-      Premium: { Monthly: "2499", Yearly: "2199" },
-    });
-  };
-
-  const handleUpdate = () => {
-    console.log("Updated Prices:", prices);
+  const handleUpdate = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/planuser/updateplanuser", {
+        UserId: userId,
+        WabaId: wabaId,
+        PlanId: planData.PlanId,
+        Price: price, // Only send the price to the backend
+      });
+      handleClose();
+    } catch (error) {
+      console.error("Error updating plan:", error);
+    }
   };
 
   const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 500,
+    bgcolor: "background.paper",
     p: 4,
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">
-          Subscription
-        </Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: "bold" }}>Plan Name</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Monthly</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Yearly</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {Object.entries(prices).map(([plan, pricing]) => (
-                <TableRow key={plan}>
-                  <TableCell>{plan}</TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      variant="outlined"
-                      size="small"
-                      value={pricing.Monthly}
-                      onChange={(e) => handleChange(plan, "Monthly", e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      variant="outlined"
-                      size="small"
-                      value={pricing.Yearly}
-                      onChange={(e) => handleChange(plan, "Yearly", e.target.value)}
-                    />
-                  </TableCell>
+        <Typography variant="h6">Subscription Details</Typography>
+        {planData && (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>Plan Name</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Exp Value</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              {planData ? (
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{planData.planName}</TableCell>
+                    <TableCell>{planData.expValue}</TableCell>
+                    <TableCell>
+                      <TextField
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              ) : (
+                <Typography>Loading...</Typography>
+              )}
+            </Table>
+          </TableContainer>
+        )}
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-          <Button variant="outlined" color="primary" onClick={handleReset}>
-            Reset Price
-          </Button>
           <Button variant="contained" color="primary" onClick={handleUpdate}>
             Update
+          </Button>
+          <Button variant="outlined" color="secondary" onClick={handleClose}>
+            Cancel
           </Button>
         </Box>
       </Box>
