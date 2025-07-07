@@ -1,37 +1,81 @@
 import React, { useState } from 'react';
 import "./Font.css";
-import { TextField, Button, Typography, Grid, Modal, Box, IconButton } from '@mui/material';
+import { 
+  TextField, 
+  Button, 
+  Typography, 
+  Grid, 
+  Modal, 
+  Box, 
+  IconButton,
+  CircularProgress
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import axios from 'axios';
 
-const Newpage = ({ open, handleClose }) => {
+const Newpage = ({ open, handleClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    businessName: "",
-    businessWebsite: "",
-    password: "",
+    name: '',
+    email: '',
+    phone: '',
+    businessName: '',
+    businessWebsite: '',
+    password: ''
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({
+      ...formData,
+      [name]: value
+    }));
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+    if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setLoading(true);
-    setError("");
-
     try {
-      const response = await axios.post('http://localhost:5000/api/accounts/createUser', formData);
-      console.log("User created:", response.data);
-      handleClose(); // Close the modal after successful creation
-    } catch (err) {
-      setError(err.response?.data?.error || "Something went wrong.");
+      await onSubmit(formData);
+      // Reset form on successful submission
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        businessName: '',
+        businessWebsite: '',
+        password: ''
+      });
+      setErrors({});
+    } catch (error) {
+      // Error handling is done in the parent component
     } finally {
       setLoading(false);
     }
@@ -50,11 +94,11 @@ const Newpage = ({ open, handleClose }) => {
   };
 
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={!loading ? handleClose : undefined}>
       <Box sx={style}>
         <IconButton
           aria-label="close"
-          onClick={handleClose}
+          onClick={!loading ? handleClose : undefined}
           sx={{
             position: 'absolute',
             right: 8,
@@ -77,7 +121,9 @@ const Newpage = ({ open, handleClose }) => {
                 placeholder="Enter your name here"
                 value={formData.name}
                 onChange={handleChange}
-                required
+                error={!!errors.name}
+                helperText={errors.name}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -90,7 +136,9 @@ const Newpage = ({ open, handleClose }) => {
                 placeholder="example@convobox.com"
                 value={formData.email}
                 onChange={handleChange}
-                required
+                error={!!errors.email}
+                helperText={errors.email}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -102,7 +150,9 @@ const Newpage = ({ open, handleClose }) => {
                 placeholder="+91 9994770276"
                 value={formData.phone}
                 onChange={handleChange}
-                required
+                error={!!errors.phone}
+                helperText={errors.phone}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -114,7 +164,9 @@ const Newpage = ({ open, handleClose }) => {
                 placeholder="Enter business name"
                 value={formData.businessName}
                 onChange={handleChange}
-                required
+                error={!!errors.businessName}
+                helperText={errors.businessName}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -126,6 +178,7 @@ const Newpage = ({ open, handleClose }) => {
                 placeholder="Enter business website"
                 value={formData.businessWebsite}
                 onChange={handleChange}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -138,7 +191,9 @@ const Newpage = ({ open, handleClose }) => {
                 placeholder="Min. 8 characters"
                 value={formData.password}
                 onChange={handleChange}
-                required
+                error={!!errors.password}
+                helperText={errors.password}
+                disabled={loading}
               />
             </Grid>
             <Grid item xs={12}>
@@ -149,16 +204,12 @@ const Newpage = ({ open, handleClose }) => {
                 fullWidth
                 style={{ backgroundColor: '#8e24aa' }}
                 disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
               >
                 {loading ? "Creating..." : "Create Account"}
               </Button>
             </Grid>
           </Grid>
-          {error && (
-            <Typography color="error" sx={{ mt: 2 }}>
-              {error}
-            </Typography>
-          )}
         </form>
       </Box>
     </Modal>

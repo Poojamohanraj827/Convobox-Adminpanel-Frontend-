@@ -19,7 +19,7 @@ const AddCredits = ({ open, handleClose, userId, wabaId, onCreditsUpdated }) => 
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/api/admin/addCredits", {
+      const response = await axios.post("http://localhost:5001/api/admin/addCredits", {
         userId,
         wabaId,
         amount: Number(amount), // Ensure it's a number

@@ -10,7 +10,7 @@ const ToggleButton = ({ userId, wabaId, onUpdate }) => {
     useEffect(() => {
         const fetchAccountStatus = async () => {
             try {
-                const response = await axios.post("http://localhost:5000/api/accounts/getAccountStatus", {
+                const response = await axios.post("http://localhost:5001/api/accounts/getAccountStatus", {
                     userId,
                     wabaId,
                 });
@@ -30,7 +30,7 @@ const ToggleButton = ({ userId, wabaId, onUpdate }) => {
 
         try {
             // Call the backend function to toggle account status
-            await axios.post("http://localhost:5000/api/accounts/toggleAccountStatus", {
+            await axios.post("http://localhost:5001/api/accounts/toggleAccountStatus", {
                 userId,
                 wabaId,
                 deactivate: !newStatus, // true for deactivation, false for activation

@@ -15,7 +15,7 @@ const Subscription = ({ open, handleClose, userId, wabaId }) => {
 
   const fetchPlanDetails = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/planuser/getplanuser", { UserId: userId, WabaId: wabaId });
+      const response = await axios.post("http://localhost:5001/api/planuser/getplanuser", { UserId: userId, WabaId: wabaId });
       setPlanData(response.data);
       setPrice(response.data.price); // Ensure lowercase if the API returns it this way
     } catch (error) {
@@ -25,7 +25,7 @@ const Subscription = ({ open, handleClose, userId, wabaId }) => {
 
   const handleUpdate = async () => {
     try {
-      await axios.post("http://localhost:5000/api/planuser/updateplanuser", {
+      await axios.post("http://localhost:5001/api/planuser/updateplanuser", {
         UserId: userId,
         WabaId: wabaId,
         PlanId: planData.PlanId,

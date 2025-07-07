@@ -24,7 +24,7 @@ const Rates = () => {
     const fetchRates = async () => {
         try {
             setLoading(true);
-            const response = await axios.post("http://localhost:5000/api/defaultcharges/getdefaultcharges");
+            const response = await axios.post("http://localhost:5001/api/defaultcharges/getdefaultcharges");
 
             if (response.status === 200 && response.data.charges) {
                 const rates = {};
@@ -69,7 +69,7 @@ const Rates = () => {
             // Send updated charges one by one to the backend
             for (const charge of updatedCharges) {
                 await axios.post(
-                    "http://localhost:5000/api/defaultcharges/updatedefaultcharges",
+                    "http://localhost:5001/api/defaultcharges/updatedefaultcharges",
                     charge,
                     { headers: { "Content-Type": "application/json" } }
                 );

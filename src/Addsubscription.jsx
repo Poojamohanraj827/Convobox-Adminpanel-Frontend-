@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from "react";
 import {
   Typography,
@@ -26,7 +28,7 @@ const AddSubscription = ({ open, handleClose, userId, wabaId }) => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.post("http://localhost:5000/api/subPlans/getAllPlanNames");
+        const response = await axios.post("http://localhost:5001/api/subPlans/getAllPlanNames");
         setPlans(response.data);
       } catch (err) {
         setError("Failed to load plans.");
@@ -84,7 +86,7 @@ const AddSubscription = ({ open, handleClose, userId, wabaId }) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/planuser/createplanuser",
+        "http://localhost:5001/api/planuser/createplanuser",
         requestData
       );
       console.log("Subscription Activated:", response.data);

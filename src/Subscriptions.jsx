@@ -19,7 +19,7 @@ const Subscriptions = () => {
   const [priceEdits, setPriceEdits] = useState({});
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/subplans/getAllSubPlans", {
+    fetch("http://localhost:5001/api/subplans/getAllSubPlans", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -43,7 +43,7 @@ const Subscriptions = () => {
     if (!editMode[planId]) return;
     const newAllowed = !currentAllowed;
 
-    fetch("http://localhost:5000/api/Plans/updatepermission", {
+    fetch("http://localhost:5001/api/Plans/updatepermission", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planId, permission, allowed: newAllowed }),
@@ -76,7 +76,7 @@ const Subscriptions = () => {
     const newPrice = parseFloat(priceEdits[planId]);
     if (isNaN(newPrice)) return;
 
-    fetch("http://localhost:5000/api/subplans/updatePlanPrice", {
+    fetch("http://localhost:5001/api/subplans/updatePlanPrice", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planId, newPrice }),

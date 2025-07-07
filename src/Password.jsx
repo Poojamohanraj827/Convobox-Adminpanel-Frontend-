@@ -34,7 +34,7 @@ const Password = ({ open, handleClose, userId }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/accounts/resetPassword", {
+      const response = await fetch("http://localhost:5001/api/accounts/resetPassword", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
