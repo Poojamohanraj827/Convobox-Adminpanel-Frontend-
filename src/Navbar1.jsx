@@ -52,7 +52,8 @@ const Navbar1 = () => {
         message: '',
         severity: 'success'
     });
-
+        const [selectedAccounts, setSelectedAccounts] = useState([]);
+    const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
         // Function to format date as day-month-year
         const formatDate = (dateString) => {
             const date = new Date(dateString);
@@ -82,6 +83,73 @@ const Navbar1 = () => {
             });
         } finally {
             setSyncing(false);
+        }
+    };
+        // Modify the checkbox handler to track selected accounts
+    const handleCheckboxChange = (event, userId, wabaId) => {
+        if (event.target.checked) {
+            setSelectedAccounts(prev => [...prev, { userId, wabaId }]);
+            setCount(prev => prev + 1);
+        } else {
+            setSelectedAccounts(prev => prev.filter(account => 
+                !(account.userId === userId && account.wabaId === wabaId)
+            ));
+            setCount(prev => prev - 1);
+        }
+    };
+
+    // Open bulk delete confirmation dialog
+    const handleBulkDeleteClick = () => {
+        if (selectedAccounts.length === 0) {
+            setSnackbar({
+                open: true,
+                message: 'Please select at least one account to delete',
+                severity: 'warning'
+            });
+            return;
+        }
+        setBulkDeleteDialogOpen(true);
+    };
+
+    // Handle bulk delete confirmation
+    const handleBulkDeleteConfirm = async () => {
+        try {
+            const response = await axios.post('http://localhost:5001/api/accounts/bulkDeleteAccounts', {
+                accounts: selectedAccounts
+            });
+
+            setSnackbar({
+                open: true,
+                message: response.data.message || `Successfully deleted ${response.data.deletedCount} account(s)`,
+                severity: 'success'
+            });
+
+            // Refresh the table data
+            fetchAllAccounts();
+            
+            // Reset selections
+            setSelectedAccounts([]);
+            setCount(0);
+            
+            // Close the dialog
+            setBulkDeleteDialogOpen(false);
+            
+            // Show any errors that occurred during bulk deletion
+            if (response.data.errors && response.data.errors.length > 0) {
+                setSnackbar({
+                    open: true,
+                    message: `${response.data.errors.length} accounts failed to delete`,
+                    severity: 'error'
+                });
+            }
+        } catch (error) {
+            console.error("Error in bulk delete:", error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.error || 'Failed to delete accounts',
+                severity: 'error'
+            });
+            setBulkDeleteDialogOpen(false);
         }
     };
 
@@ -154,7 +222,7 @@ const Navbar1 = () => {
                     business: account.businessName,
                     email: account.userEmail,
                     contact: account.userPhone,
-                    date: formatDate(account.createdAt), // Format date
+                    date: formatDate(account.userCreatedDate), // Format date
                     wabaStatus: account.userPhoneStatus,
                     subscription: account.planName,
                     startDate: formatDate(account.PlanEff), // Format startDate
@@ -191,9 +259,9 @@ const Navbar1 = () => {
         };
 
         // Checkbox handler
-        const handleCheckboxChange = (event) => {
-            setCount(prev => event.target.checked ? prev + 1 : prev - 1);
-        };
+        // const handleCheckboxChange = (event) => {
+        //     setCount(prev => event.target.checked ? prev + 1 : prev - 1);
+        // };
 
         // Open delete confirmation dialog
         const handleDeleteClick = (userId, wabaId) => {
@@ -336,7 +404,7 @@ const Navbar1 = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '10px', mb: 2, backgroundColor: 'white', borderRadius: 1, boxShadow: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Typography sx={{ color: 'grey' }}>{count} Selected</Typography>
-                        <Button variant="outlined" color="error" startIcon={<DeleteIcon />} size="small">
+                        <Button variant="outlined" color="error" startIcon={<DeleteIcon />} size="small" onClick={handleBulkDeleteClick} disabled={count === 0}>
                             Delete
                         </Button>
                         <TablePagination
@@ -373,7 +441,13 @@ const Navbar1 = () => {
                                 {visibleRows.map((row) => (
                                     <TableRow key={row.id}>
                                         <TableCell padding="checkbox" sx={{ whiteSpace: 'nowrap' }}>
-                                            <Checkbox size="small" onChange={handleCheckboxChange} />
+                                               <Checkbox 
+                                                size="small" 
+                                                onChange={(e) => handleCheckboxChange(e, row.userId, row.wabaId)}
+                                                checked={selectedAccounts.some(acc => 
+                                                    acc.userId === row.userId && acc.wabaId === row.wabaId
+                                                )}
+                                            />
                                         </TableCell>
                                         <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.business}</TableCell>
                                         <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.email}</TableCell>
@@ -468,6 +542,34 @@ const Navbar1 = () => {
                         </Button>
                     </DialogActions>
                 </Dialog>
+                <Dialog open={bulkDeleteDialogOpen} onClose={() => setBulkDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Bulk Deletion</DialogTitle>
+        <DialogContent>
+            <Typography>
+                Are you sure you want to delete {selectedAccounts.length} selected account(s)?
+            </Typography>
+            {selectedAccounts.length > 5 && (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    (Showing first 5 of {selectedAccounts.length} selected accounts)
+                </Typography>
+            )}
+            <Box sx={{ maxHeight: 200, overflow: 'auto', mt: 2 }}>
+                {selectedAccounts.slice(0, 5).map((account, index) => (
+                    <Typography key={index} variant="body2">
+                        • User ID: {account.userId}, WABA ID: {account.wabaId}
+                    </Typography>
+                ))}
+            </Box>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => setBulkDeleteDialogOpen(false)} color="primary">
+                Cancel
+            </Button>
+            <Button onClick={handleBulkDeleteConfirm} color="error">
+                Confirm Delete
+            </Button>
+        </DialogActions>
+    </Dialog>
 
                 {/* Newpage Modal */}
                 <Newpage open={newPageOpen} handleClose={handleNewPageClose} onSubmit={handleCreateAccount}/>
