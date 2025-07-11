@@ -4,6 +4,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import "./Font.css";
 
 const Password = ({ open, handleClose, userId }) => {
+  const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,7 +35,7 @@ const Password = ({ open, handleClose, userId }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/accounts/resetPassword", {
+      const response = await fetch(`${ADMIN_SERVER_URL}/api/accounts/resetPassword`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

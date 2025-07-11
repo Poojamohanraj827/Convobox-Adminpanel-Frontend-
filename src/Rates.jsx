@@ -16,6 +16,7 @@ import "./Font.css";
 import axios from "axios";
 
 const Rates = () => {
+    const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
     const [pricing, setPricing] = useState({});
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
@@ -24,7 +25,7 @@ const Rates = () => {
     const fetchRates = async () => {
         try {
             setLoading(true);
-            const response = await axios.post("http://localhost:5001/api/defaultcharges/getdefaultcharges");
+            const response = await axios.post(`${ADMIN_SERVER_URL}/api/defaultcharges/getdefaultcharges`);
 
             if (response.status === 200 && response.data.charges) {
                 const rates = {};
@@ -69,7 +70,7 @@ const Rates = () => {
             // Send updated charges one by one to the backend
             for (const charge of updatedCharges) {
                 await axios.post(
-                    "http://localhost:5001/api/defaultcharges/updatedefaultcharges",
+                    `${ADMIN_SERVER_URL}/api/defaultcharges/updatedefaultcharges`,
                     charge,
                     { headers: { "Content-Type": "application/json" } }
                 );

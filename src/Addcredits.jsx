@@ -4,13 +4,14 @@ import axios from "axios";
 import "./Font.css";
 
 const AddCredits = ({ open, handleClose, userId, wabaId, onCreditsUpdated }) => {
+  const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
   const [amount, setAmount] = useState("");
   const [notes, setnotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleUpdate = async () => {
-    if (!amount || isNaN(amount) || amount <= 0) {
+    if (!amount || isNaN(amount)) {
       setError("Please enter a valid amount.");
       return;
     }
@@ -19,7 +20,7 @@ const AddCredits = ({ open, handleClose, userId, wabaId, onCreditsUpdated }) => 
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:5001/api/admin/addCredits", {
+      const response = await axios.post(`${ADMIN_SERVER_URL}/api/admin/addCredits`, {
         userId,
         wabaId,
         amount: Number(amount), // Ensure it's a number

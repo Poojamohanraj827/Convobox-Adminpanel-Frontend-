@@ -4,13 +4,14 @@ import axios from "axios";
 import "./Togglebutton.css";
 
 const ToggleButton = ({ userId, wabaId, onUpdate }) => {
+    const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
     const [isActive, setIsActive] = useState(false); // Default state until fetched
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchAccountStatus = async () => {
             try {
-                const response = await axios.post("http://localhost:5001/api/accounts/getAccountStatus", {
+                const response = await axios.post(`${ADMIN_SERVER_URL}/api/accounts/getAccountStatus`, {
                     userId,
                     wabaId,
                 });
@@ -30,7 +31,7 @@ const ToggleButton = ({ userId, wabaId, onUpdate }) => {
 
         try {
             // Call the backend function to toggle account status
-            await axios.post("http://localhost:5001/api/accounts/toggleAccountStatus", {
+            await axios.post(`${ADMIN_SERVER_URL}/api/accounts/toggleAccountStatus`, {
                 userId,
                 wabaId,
                 deactivate: !newStatus, // true for deactivation, false for activation

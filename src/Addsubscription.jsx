@@ -16,6 +16,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 
 const AddSubscription = ({ open, handleClose, userId, wabaId }) => {
+  const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
   const [plan, setPlan] = useState("");
   const [subscriptionType, setSubscriptionType] = useState("");
   const [startDate, setStartDate] = useState(dayjs().format("YYYY-MM-DD")); // Default to today
@@ -28,7 +29,7 @@ const AddSubscription = ({ open, handleClose, userId, wabaId }) => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.post("http://localhost:5001/api/subPlans/getAllPlanNames");
+        const response = await axios.post(`${ADMIN_SERVER_URL}/api/subPlans/getAllPlanNames`);
         setPlans(response.data);
       } catch (err) {
         setError("Failed to load plans.");
@@ -86,7 +87,7 @@ const AddSubscription = ({ open, handleClose, userId, wabaId }) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/planuser/createplanuser",
+        `${ADMIN_SERVER_URL}/api/planuser/createplanuser`,
         requestData
       );
       console.log("Subscription Activated:", response.data);

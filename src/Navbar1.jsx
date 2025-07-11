@@ -33,6 +33,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Navbar1 = () => {
+    const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
     const navigate = useNavigate();
     const [count, setCount] = useState(0);
     const [page, setPage] = useState(0);
@@ -66,7 +67,7 @@ const Navbar1 = () => {
     const handleSyncAccounts = async () => {
         setSyncing(true);
         try {
-            const response = await axios.post('http://localhost:5001/api/accounts/syncAccounts');
+            const response = await axios.post(`${ADMIN_SERVER_URL}/api/accounts/syncAccounts`);
             setSnackbar({
                 open: true,
                 message: response.data.message || 'Accounts synced successfully',
@@ -114,7 +115,7 @@ const Navbar1 = () => {
     // Handle bulk delete confirmation
     const handleBulkDeleteConfirm = async () => {
         try {
-            const response = await axios.post('http://localhost:5001/api/accounts/bulkDeleteAccounts', {
+            const response = await axios.post(`${ADMIN_SERVER_URL}/api/accounts/bulkDeleteAccounts`, {
                 accounts: selectedAccounts
             });
 
@@ -162,7 +163,7 @@ const Navbar1 = () => {
         const fetchAllAccounts = async () => {
             setLoading(true);
             try {
-                const response = await axios.post('http://localhost:5001/api/accounts/getAllAccounts');
+                const response = await axios.post(`${ADMIN_SERVER_URL}/api/accounts/getAllAccounts`);
                 const mappedData = response.data.map((account, index) => ({
                     id: index + 1,
                     userId: account.userId,
@@ -170,7 +171,7 @@ const Navbar1 = () => {
                     business: account.businessName,
                     email: account.userEmail,
                     contact: account.userPhone,
-                    date: formatDate(account.createdAt), // Format date
+                    date: formatDate(account.userCreatedDate), // Format date
                     wabaStatus: account.userPhoneStatus,
                     subscription: account.planName,
                         // Set to null if plan is "No Plan"
@@ -179,7 +180,7 @@ const Navbar1 = () => {
                         accStatus: account.accStatus,
                         balance: null,
                         // Add PlanStatus for the ToggleButton
-                        PlanStatus: account.planStatus || "Inactive"
+                        PlanStatus: account.PlanStatus || "Inactive"
                                     }));
 
                 // Fetch balances in parallel
@@ -197,7 +198,7 @@ const Navbar1 = () => {
         // Function to fetch balance for an account
         const fetchBalance = async (userId, wabaId) => {
             try {
-                const response = await axios.post('http://localhost:5001/api/credit/getBalance', { userId, wabaId });
+                const response = await axios.post(`${ADMIN_SERVER_URL}/api/credit/getBalance`, { userId, wabaId });
                 return response.data.balance || 0;
             } catch (error) {
                 console.error(`Error fetching balance for ${userId}:`, error);
@@ -214,7 +215,7 @@ const Navbar1 = () => {
 
             setLoading(true);
             try {
-                const response = await axios.post('http://localhost:5001/api/admin/searchrecords', { businessName });
+                const response = await axios.post(`${ADMIN_SERVER_URL}/api/admin/searchrecords`, { businessName });
                 const mappedData = response.data.accounts.map((account, index) => ({
                     id: index + 1,
                     userId: account.userId,
@@ -278,7 +279,7 @@ const Navbar1 = () => {
         // Handle delete confirmation
         const handleDeleteConfirm = () => {
             const { userId, wabaId } = selectedUser;
-            axios.post('http://localhost:5001/api/accounts/deleteaccount', { userId, wabaId })
+            axios.post(`${ADMIN_SERVER_URL}/api/accounts/deleteaccount`, { userId, wabaId })
                 .then(() => {
                     setTableData(prevData => prevData.map(item => 
                         item.userId === userId ? { ...item, accStatus: 'DELETED' } : item
@@ -303,7 +304,7 @@ const Navbar1 = () => {
         // Handle restore confirmation
         const handleRestoreConfirm = () => {
             const { userId, wabaId } = selectedRestoreUser;
-            axios.post('http://localhost:5001/api/accounts/restoreaccount', { userId, wabaId })
+            axios.post(`${ADMIN_SERVER_URL}/api/accounts/restoreaccount`, { userId, wabaId })
                 .then(() => {
                     setTableData(prevData => prevData.map(item => 
                         item.userId === userId ? { ...item, accStatus: 'ACTIVE' } : item
@@ -328,7 +329,7 @@ const Navbar1 = () => {
         // Function to handle account creation
     const handleCreateAccount = async (formData) => {
         try {
-            const response = await axios.post('http://localhost:5001/api/accounts/createaccounts', formData);
+            const response = await axios.post(`${ADMIN_SERVER_URL}/api/accounts/createaccounts`, formData);
             setSnackbar({
                 open: true,
                 message: 'Account created successfully!',
@@ -501,7 +502,7 @@ const Navbar1 = () => {
                                                         Delete
                                                     </Button>
                                                 )}
-                                                <Dropdown userId={row.userId} wabaId={row.wabaId} disabled={row.accStatus === "DELETED" || !row.wabaId} />
+                                                <Dropdown userId={row.userId} wabaId={row.wabaId} disabled={row.accStatus === "DELETED"} />
                                             </Box>
                                         </TableCell>
                                     </TableRow>

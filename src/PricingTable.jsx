@@ -14,6 +14,7 @@ const style = {
 };
 
 const PricingTable = ({ open, handleClose, userId, wabaId }) => {
+  const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
   const [charges, setCharges] = useState([]);
   const [updatedCharges, setUpdatedCharges] = useState([]);
 
@@ -25,7 +26,7 @@ const PricingTable = ({ open, handleClose, userId, wabaId }) => {
 
   const fetchUserCharges = async () => {
     try {
-      const response = await axios.post("http://localhost:5001/api/charges/getUserCharges", { userId, wabaId });
+      const response = await axios.post(`${ADMIN_SERVER_URL}/api/charges/getUserCharges`, { userId, wabaId });
       setCharges(response.data);
 
       // Initialize updatedCharges with existing values
@@ -57,7 +58,7 @@ const PricingTable = ({ open, handleClose, userId, wabaId }) => {
         markupPrice: parseFloat(charge.markupPrice) || 0, // Convert to float before sending
       }));
 
-      await axios.post("http://localhost:5001/api/charges/updateCharges1", {
+      await axios.post(`${ADMIN_SERVER_URL}/api/charges/updateCharges1`, {
         userId,
         wabaId,
         updatedCharges: formattedCharges,

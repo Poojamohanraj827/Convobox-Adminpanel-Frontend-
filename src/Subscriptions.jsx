@@ -14,12 +14,13 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 
 const Subscriptions = () => {
+  const ADMIN_SERVER_URL = process.env.REACT_APP_ADMIN_SERVER_URL;
   const [plans, setPlans] = useState([]);
   const [editMode, setEditMode] = useState({});
   const [priceEdits, setPriceEdits] = useState({});
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/subplans/getAllSubPlans", {
+    fetch(`${ADMIN_SERVER_URL}/api/subplans/getAllSubPlans`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -43,7 +44,7 @@ const Subscriptions = () => {
     if (!editMode[planId]) return;
     const newAllowed = !currentAllowed;
 
-    fetch("http://localhost:5001/api/Plans/updatepermission", {
+    fetch(`${ADMIN_SERVER_URL}/api/Plans/updatepermission`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planId, permission, allowed: newAllowed }),
@@ -76,7 +77,7 @@ const Subscriptions = () => {
     const newPrice = parseFloat(priceEdits[planId]);
     if (isNaN(newPrice)) return;
 
-    fetch("http://localhost:5001/api/subplans/updatePlanPrice", {
+    fetch(`${ADMIN_SERVER_URL}/api/subplans/updatePlanPrice`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planId, newPrice }),
